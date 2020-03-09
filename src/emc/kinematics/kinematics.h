@@ -15,7 +15,7 @@
 #ifndef KINEMATICS_H
 #define KINEMATICS_H
 
-#include "emcpos.h"		/* EmcPose */
+#include "emcpos.h" /* EmcPose */
 
 /*
   The type of kinematics used.
@@ -42,10 +42,10 @@
 */
 
 typedef enum {
-    KINEMATICS_IDENTITY = 1,	/* forward=inverse, both well-behaved */
-    KINEMATICS_FORWARD_ONLY,	/* forward but no inverse */
-    KINEMATICS_INVERSE_ONLY,	/* inverse but no forward */
-    KINEMATICS_BOTH		/* forward and inverse both */
+    KINEMATICS_IDENTITY = 1,/* forward=inverse, both well-behaved */
+    KINEMATICS_FORWARD_ONLY,/* forward but no inverse */
+    KINEMATICS_INVERSE_ONLY,/* inverse but no forward */
+    KINEMATICS_BOTH         /* forward and inverse both */
 } KINEMATICS_TYPE;
 
 /* the forward flags are passed to the forward kinematics so that they
@@ -75,18 +75,18 @@ typedef unsigned long int KINEMATICS_INVERSE_FLAGS;
    flags are set to indicate their value appropriate to the joint values
    passed in. */
 extern int kinematicsForward(const double *joint,
-			     struct EmcPose * world,
-			     const KINEMATICS_FORWARD_FLAGS * fflags,
-			     KINEMATICS_INVERSE_FLAGS * iflags);
+                             struct EmcPose * world,
+                             const KINEMATICS_FORWARD_FLAGS * fflags,
+                             KINEMATICS_INVERSE_FLAGS * iflags);
 
 /* the inverse kinematics take world coordinates and determine joint values,
    given the inverse kinematics flags to resolve any ambiguities. The forward
    flags are set to indicate their value appropriate to the world coordinates
    passed in. */
 extern int kinematicsInverse(const struct EmcPose * world,
-			     double *joint,
-			     const KINEMATICS_INVERSE_FLAGS * iflags,
-			     KINEMATICS_FORWARD_FLAGS * fflags);
+                             double *joint,
+                             const KINEMATICS_INVERSE_FLAGS * iflags,
+                             KINEMATICS_FORWARD_FLAGS * fflags);
 
 /* the home kinematics function sets all its arguments to their proper
    values at the known home position. When called, these should be set,
@@ -95,9 +95,9 @@ extern int kinematicsInverse(const struct EmcPose * world,
    should be used.
 */
 extern int kinematicsHome(struct EmcPose * world,
-			  double *joint,
-			  KINEMATICS_FORWARD_FLAGS * fflags,
-			  KINEMATICS_INVERSE_FLAGS * iflags);
+                          double *joint,
+                          KINEMATICS_FORWARD_FLAGS * fflags,
+                          KINEMATICS_INVERSE_FLAGS * iflags);
 
 extern KINEMATICS_TYPE kinematicsType(void);
 
@@ -111,9 +111,54 @@ extern KINEMATICS_TYPE kinematicsType(void);
 **          axis_idx_for_jno[4] = 1 ==> A
 **          axis_idx_for_jno[5] = 1 ==> C
 */
-extern int map_coordinates_to_jnumbers(char *coordinates,
-                                       int  max_joints,
-                                       int  allow_duplicates,
-                                       int  axis_idx_for_jno[]);
+extern int map_coordinates_to_jnumbers(const char *coordinates,
+                                       const int  max_joints,
+                                       const int  allow_duplicates,
+                                             int  axis_idx_for_jno[]);
 
+extern int identityKinematicsSetup(const char* coordinates,
+                                   const int   max_joints,
+                                   const int   allow_duplicates);
+
+extern int identityKinematicsForward(const double *joint,
+                                     struct EmcPose * world,
+                                     const KINEMATICS_FORWARD_FLAGS * fflags,
+                                     KINEMATICS_INVERSE_FLAGS * iflags);
+
+extern int identityKinematicsInverse(const struct EmcPose * world,
+                                     double *joint,
+                                     const KINEMATICS_INVERSE_FLAGS * iflags,
+                                     KINEMATICS_FORWARD_FLAGS * fflags);
+
+extern int kinematicsSwitchable(void);
+extern int kinematicsSwitch(int switchkins_type);
+//NOTE: switchable kinematics may require Interp::Synch
+//      before/after invoking kinematicsSwitch()
+//      A convenient command to synch is: M66 E0 L0
+
+#define KINS_NOT_SWITCHABLE \
+int kinematicsSwitchable() {return 0;} \
+int kinematicsSwitch(int switchkins_type) {return 0;} \
+EXPORT_SYMBOL(kinematicsSwitchable); \
+EXPORT_SYMBOL(kinematicsSwitch);
+
+
+// support for template for user-defined switchkins_type==2
+extern int switchtype2KinematicsSetup(const char *coordinates,
+                                      const int  max_joints,
+                                      const int comp_id);
+
+extern int switchtype2KinematicsForward(const double *joint,
+                                        struct EmcPose * world,
+                                        const KINEMATICS_FORWARD_FLAGS * fflags,
+                                        KINEMATICS_INVERSE_FLAGS * iflags);
+
+extern int switchtype2KinematicsInverse(const struct EmcPose * world,
+                                        double *joint,
+                                        const KINEMATICS_INVERSE_FLAGS * iflags,
+                                        KINEMATICS_FORWARD_FLAGS * fflags);
+
+// support for vismach gui
+extern int genhex_gui_forward_kins(const double *joint,
+                                   EmcPose *pos);
 #endif
